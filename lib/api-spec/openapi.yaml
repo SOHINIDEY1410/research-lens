@@ -1,0 +1,499 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: research
+    description: Research workspace operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /overview:
+    get:
+      operationId: getOverview
+      tags: [research]
+      summary: Get dashboard overview
+      responses:
+        "200":
+          description: Overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Overview"
+  /workspaces:
+    get:
+      operationId: listWorkspaces
+      tags: [research]
+      summary: List research workspaces
+      responses:
+        "200":
+          description: Workspaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Workspace"
+    post:
+      operationId: createWorkspace
+      tags: [research]
+      summary: Create a research workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkspaceInput"
+      responses:
+        "201":
+          description: Created workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+  /workspaces/{workspaceId}:
+    get:
+      operationId: getWorkspace
+      tags: [research]
+      summary: Get a workspace
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: Workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+  /workspaces/{workspaceId}/documents:
+    get:
+      operationId: listDocuments
+      tags: [research]
+      summary: List documents in a workspace
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+    post:
+      operationId: uploadDocument
+      tags: [research]
+      summary: Upload or register a document
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentInput"
+      responses:
+        "201":
+          description: Uploaded document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+  /workspaces/{workspaceId}/documents/{documentId}/reindex:
+    post:
+      operationId: reindexDocument
+      tags: [research]
+      summary: Re-run the document indexing pipeline
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+        - $ref: "#/components/parameters/DocumentId"
+      responses:
+        "200":
+          description: Reindexed document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+  /workspaces/{workspaceId}/conversations:
+    get:
+      operationId: listConversations
+      tags: [research]
+      summary: List conversations
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: Conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+    post:
+      operationId: createConversation
+      tags: [research]
+      summary: Create a conversation
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+  /workspaces/{workspaceId}/conversations/{conversationId}:
+    get:
+      operationId: getConversation
+      tags: [research]
+      summary: Get a conversation
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+        - $ref: "#/components/parameters/ConversationId"
+      responses:
+        "200":
+          description: Conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDetail"
+  /workspaces/{workspaceId}/chat:
+    post:
+      operationId: askResearchQuestion
+      tags: [research]
+      summary: Route, retrieve, and answer a research question
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "200":
+          description: Grounded research answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+  /workspaces/{workspaceId}/retrieval:
+    get:
+      operationId: getRetrievalStats
+      tags: [research]
+      summary: Get retrieval and grounding statistics
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: Retrieval statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RetrievalStats"
+  /workspaces/{workspaceId}/comparisons:
+    post:
+      operationId: createComparison
+      tags: [research]
+      summary: Compare selected documents
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComparisonInput"
+      responses:
+        "200":
+          description: Grounded comparison
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comparison"
+  /evaluations:
+    get:
+      operationId: getEvaluationSummary
+      tags: [research]
+      summary: Get evaluation dashboard metrics
+      responses:
+        "200":
+          description: Evaluation summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationSummary"
+    post:
+      operationId: runEvaluation
+      tags: [research]
+      summary: Run an evaluation experiment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvaluationInput"
+      responses:
+        "200":
+          description: Evaluation run
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationRun"
+components:
+  parameters:
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      schema: { type: string }
+    DocumentId:
+      name: documentId
+      in: path
+      required: true
+      schema: { type: string }
+    ConversationId:
+      name: conversationId
+      in: path
+      required: true
+      schema: { type: string }
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Workspace:
+      type: object
+      required: [id, name, description, documentCount, chunkCount, updatedAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        documentCount: { type: integer }
+        chunkCount: { type: integer }
+        updatedAt: { type: string }
+    WorkspaceInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1 }
+        description: { type: string }
+    Document:
+      type: object
+      required: [id, workspaceId, filename, fileType, pages, chunks, status, embeddingStatus, uploadedAt, sizeBytes]
+      properties:
+        id: { type: string }
+        workspaceId: { type: string }
+        filename: { type: string }
+        fileType: { type: string }
+        pages: { type: integer }
+        chunks: { type: integer }
+        status: { type: string }
+        embeddingStatus: { type: string }
+        uploadedAt: { type: string }
+        sizeBytes: { type: integer }
+        summary: { type: string }
+    DocumentInput:
+      type: object
+      required: [filename, sizeBytes]
+      properties:
+        filename: { type: string, minLength: 1 }
+        sizeBytes: { type: integer, minimum: 1 }
+        pages: { type: integer, minimum: 1 }
+        extractedText: { type: string }
+    Conversation:
+      type: object
+      required: [id, workspaceId, title, messageCount, updatedAt]
+      properties:
+        id: { type: string }
+        workspaceId: { type: string }
+        title: { type: string }
+        messageCount: { type: integer }
+        updatedAt: { type: string }
+    ConversationInput:
+      type: object
+      properties:
+        title: { type: string }
+    Message:
+      type: object
+      required: [id, role, content, createdAt]
+      properties:
+        id: { type: string }
+        role: { type: string }
+        content: { type: string }
+        createdAt: { type: string }
+    Citation:
+      type: object
+      required: [id, documentId, filename, page, chunk, score, excerpt]
+      properties:
+        id: { type: string }
+        documentId: { type: string }
+        filename: { type: string }
+        page: { type: integer }
+        chunk: { type: integer }
+        score: { type: number }
+        excerpt: { type: string }
+    ChatInput:
+      type: object
+      required: [question]
+      properties:
+        question: { type: string, minLength: 1 }
+        conversationId: { type: ["string", "null"] }
+        topK: { type: integer, minimum: 1, maximum: 20 }
+        similarityThreshold: { type: number, minimum: 0, maximum: 1 }
+    ChatResponse:
+      type: object
+      required: [conversationId, answer, intent, steps, citations, grounding]
+      properties:
+        conversationId: { type: string }
+        answer: { type: string }
+        intent: { type: string }
+        steps:
+          type: array
+          items: { type: string }
+        citations:
+          type: array
+          items: { $ref: "#/components/schemas/Citation" }
+        grounding:
+          $ref: "#/components/schemas/Grounding"
+    Grounding:
+      type: object
+      required: [label, coverage, supported]
+      properties:
+        label: { type: string }
+        coverage: { type: number, minimum: 0, maximum: 1 }
+        supported: { type: boolean }
+    ConversationDetail:
+      allOf:
+        - $ref: "#/components/schemas/Conversation"
+        - type: object
+          required: [messages]
+          properties:
+            messages:
+              type: array
+              items: { $ref: "#/components/schemas/Message" }
+    RetrievalStats:
+      type: object
+      required: [indexedChunks, searches, averageScore, groundingScore, topK, threshold, reranking]
+      properties:
+        indexedChunks: { type: integer }
+        searches: { type: integer }
+        averageScore: { type: number }
+        groundingScore: { type: number, minimum: 0, maximum: 1 }
+        topK: { type: integer }
+        threshold: { type: number }
+        reranking: { type: boolean }
+    ComparisonInput:
+      type: object
+      required: [documentIds]
+      properties:
+        documentIds:
+          type: array
+          minItems: 2
+          items: { type: string }
+    Comparison:
+      type: object
+      required: [title, columns, rows, citations]
+      properties:
+        title: { type: string }
+        columns:
+          type: array
+          items: { type: string }
+        rows:
+          type: array
+          items:
+            type: object
+            required: [aspect, values]
+            properties:
+              aspect: { type: string }
+              values:
+                type: array
+                items: { type: string }
+        citations:
+          type: array
+          items: { $ref: "#/components/schemas/Citation" }
+    EvaluationInput:
+      type: object
+      properties:
+        topK: { type: integer, minimum: 1, maximum: 20 }
+        reranking: { type: boolean }
+        threshold: { type: number, minimum: 0, maximum: 1 }
+    EvaluationRun:
+      type: object
+      required: [id, label, topK, reranking, groundedness, citationCoverage, relevance, latencyMs]
+      properties:
+        id: { type: string }
+        label: { type: string }
+        topK: { type: integer }
+        reranking: { type: boolean }
+        groundedness: { type: number, minimum: 0, maximum: 1 }
+        citationCoverage: { type: number, minimum: 0, maximum: 1 }
+        relevance: { type: number, minimum: 0, maximum: 1 }
+        latencyMs: { type: integer }
+    EvaluationSummary:
+      type: object
+      required: [metrics, runs]
+      properties:
+        metrics:
+          type: object
+          required: [retrievalPrecision, retrievalRecall, groundedness, citationCoverage, relevance, latencyMs]
+          properties:
+            retrievalPrecision: { type: number, minimum: 0, maximum: 1 }
+            retrievalRecall: { type: number, minimum: 0, maximum: 1 }
+            groundedness: { type: number, minimum: 0, maximum: 1 }
+            citationCoverage: { type: number, minimum: 0, maximum: 1 }
+            relevance: { type: number, minimum: 0, maximum: 1 }
+            latencyMs: { type: integer }
+        runs:
+          type: array
+          items: { $ref: "#/components/schemas/EvaluationRun" }
+    Overview:
+      type: object
+      required: [documentCount, chunkCount, questionCount, groundingScore, recentQuestions, recentWorkspaces]
+      properties:
+        documentCount: { type: integer }
+        chunkCount: { type: integer }
+        questionCount: { type: integer }
+        groundingScore: { type: number, minimum: 0, maximum: 1 }
+        recentQuestions:
+          type: array
+          items:
+            type: object
+            required: [question, workspace, timestamp]
+            properties:
+              question: { type: string }
+              workspace: { type: string }
+              timestamp: { type: string }
+        recentWorkspaces:
+          type: array
+          items: { $ref: "#/components/schemas/Workspace" }
+
